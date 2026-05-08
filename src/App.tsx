@@ -9,10 +9,10 @@ import { Trophy, Play, RotateCcw, CheckCircle2, XCircle, Timer, Award, User, Hea
 import { QUESTIONS } from './constants';
 import { QuizResult } from './types';
 import { db } from './services/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
 // Components
-const IntroScreen = ({ onStart }: { onStart: () => void }) => (
+const IntroScreen = ({ onStart, onShowLeaderboard }: { onStart: () => void, onShowLeaderboard: () => void }) => (
   <motion.div 
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -30,16 +30,24 @@ const IntroScreen = ({ onStart }: { onStart: () => void }) => (
     <p className="text-indigo-500 font-medium mb-12">
       Tạo bởi Hà Thị Bích Hạnh
     </p>
-    <button 
-      id="start-quiz-btn"
-      onClick={onStart}
-      className="group relative px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-xl hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-200"
-    >
-      <span className="flex items-center gap-2">
+    <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm mx-auto">
+      <button 
+        id="start-quiz-btn"
+        onClick={onStart}
+        className="flex-1 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-xl hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"
+      >
         <Play className="w-6 h-6 fill-current" />
-        Bắt đầu ngay
-      </span>
-    </button>
+        Bắt đầu
+      </button>
+      <button 
+        id="intro-leaderboard-btn"
+        onClick={onShowLeaderboard}
+        className="px-8 py-4 bg-white text-gray-700 border-2 border-gray-100 rounded-2xl font-bold text-xl hover:bg-gray-50 transition-all active:scale-95 flex items-center justify-center gap-2"
+      >
+        <Trophy className="w-6 h-6 text-yellow-500" />
+        Xếp hạng
+      </button>
+    </div>
   </motion.div>
 );
 
@@ -92,6 +100,94 @@ const RegistrationScreen = ({ onComplete }: { onComplete: (name: string) => void
           <Send className="w-5 h-5" />
         </button>
       </form>
+    </motion.div>
+  );
+};
+
+const Leaderboard = ({ onClose }: { onClose: () => void }) => {
+  const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchResults = async () => {
+      try {
+        const q = query(collection(db, 'quizResults'), orderBy('score', 'desc'), limit(10));
+        const querySnapshot = await getDocs(q);
+        const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setResults(data);
+      } catch (e) {
+        console.error("Error fetching leaderboard:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchResults();
+  }, []);
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <motion.div 
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="bg-indigo-600 p-6 text-white flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <Trophy className="w-6 h-6 text-yellow-300" />
+            <h2 className="text-xl font-bold">Bảng Xếp Hạng</h2>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+            <XCircle className="w-6 h-6" />
+          </button>
+        </div>
+        
+        <div className="p-6 max-h-[60vh] overflow-y-auto">
+          {loading ? (
+            <div className="py-20 text-center text-gray-400 font-medium animate-pulse">Đang tải dữ liệu...</div>
+          ) : results.length > 0 ? (
+            <div className="space-y-3">
+              {results.map((res, index) => (
+                <div key={res.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                  <div className="flex items-center gap-4">
+                    <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                      index === 0 ? 'bg-yellow-100 text-yellow-700' : 
+                      index === 1 ? 'bg-gray-200 text-gray-700' : 
+                      index === 2 ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-400'
+                    }`}>
+                      {index + 1}
+                    </span>
+                    <div>
+                      <div className="font-bold text-gray-900">{res.userName}</div>
+                      <div className="text-xs text-gray-500">{new Date(res.createdAt?.toDate()).toLocaleDateString('vi-VN')}</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-indigo-600 font-black text-lg">{res.score}đ</div>
+                    <div className="text-[10px] text-gray-400 font-bold uppercase">{res.correctAnswers} đúng / {res.totalQuestions} câu</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-20 text-center text-gray-400 font-medium">Chưa có dữ liệu nào được ghi nhận.</div>
+          )}
+        </div>
+        
+        <div className="p-6 bg-gray-50 border-t border-gray-100">
+          <button 
+            onClick={onClose}
+            className="w-full py-4 bg-white border-2 border-gray-200 text-gray-700 rounded-2xl font-bold hover:bg-gray-100 transition-all"
+          >
+            Đóng
+          </button>
+        </div>
+      </motion.div>
     </motion.div>
   );
 };
@@ -473,7 +569,7 @@ const QuizGame = ({ questions, onFinish }: { questions: typeof QUESTIONS; onFini
   );
 };
 
-const ResultScreen = ({ result, onRestart }: { result: QuizResult, onRestart: () => void }) => {
+const ResultScreen = ({ result, onRestart, onShowLeaderboard }: { result: QuizResult, onRestart: () => void, onShowLeaderboard: () => void }) => {
   const percentage = Math.round((result.correctAnswers / result.totalQuestions) * 100);
 
   return (
@@ -510,14 +606,24 @@ const ResultScreen = ({ result, onRestart }: { result: QuizResult, onRestart: ()
           </div>
         </div>
 
-        <button 
-          id="restart-quiz-btn"
-          onClick={onRestart}
-          className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg hover:bg-indigo-700 transition-all active:scale-95 flex items-center justify-center gap-2"
-        >
-          <RotateCcw className="w-5 h-5" />
-          Chơi lại từ đầu
-        </button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <button 
+            id="restart-quiz-btn"
+            onClick={onRestart}
+            className="py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg hover:bg-indigo-700 transition-all active:scale-95 flex items-center justify-center gap-2"
+          >
+            <RotateCcw className="w-5 h-5" />
+            Làm lại
+          </button>
+          <button 
+            id="result-leaderboard-btn"
+            onClick={onShowLeaderboard}
+            className="py-4 bg-white border-2 border-gray-100 text-gray-700 rounded-2xl font-bold text-lg hover:bg-gray-50 transition-all active:scale-95 flex items-center justify-center gap-2"
+          >
+            <Trophy className="w-5 h-5 text-yellow-500" />
+            Xếp hạng
+          </button>
+        </div>
       </div>
     </motion.div>
   );
@@ -529,6 +635,7 @@ export default function App() {
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
   const [shuffledQuestions, setShuffledQuestions] = useState<typeof QUESTIONS>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   const startQuiz = () => {
     setGameState('register');
@@ -592,7 +699,7 @@ export default function App() {
               exit={{ opacity: 0 }}
               className="w-full"
             >
-              <IntroScreen onStart={startQuiz} />
+              <IntroScreen onStart={startQuiz} onShowLeaderboard={() => setShowLeaderboard(true)} />
             </motion.div>
           )}
           {gameState === 'register' && (
@@ -642,8 +749,18 @@ export default function App() {
                   Đang sao lưu dữ liệu...
                 </div>
               )}
-              <ResultScreen result={quizResult} onRestart={() => setGameState('intro')} />
+              <ResultScreen 
+                result={quizResult} 
+                onRestart={() => setGameState('intro')} 
+                onShowLeaderboard={() => setShowLeaderboard(true)}
+              />
             </motion.div>
+          )}
+        </AnimatePresence>
+        
+        <AnimatePresence>
+          {showLeaderboard && (
+            <Leaderboard onClose={() => setShowLeaderboard(false)} />
           )}
         </AnimatePresence>
       </main>
