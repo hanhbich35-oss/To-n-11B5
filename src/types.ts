@@ -13,6 +13,7 @@ export interface Question {
 }
 
 export interface QuizResult {
+  userName: string;
   score: number;
   totalQuestions: number;
   correctAnswers: number;

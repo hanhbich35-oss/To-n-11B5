@@ -5,9 +5,11 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Trophy, Play, RotateCcw, CheckCircle2, XCircle, Timer, Award } from 'lucide-react';
+import { Trophy, Play, RotateCcw, CheckCircle2, XCircle, Timer, Award, User, Heart, Calculator, Send } from 'lucide-react';
 import { QUESTIONS } from './constants';
 import { QuizResult } from './types';
+import { db } from './services/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 // Components
 const IntroScreen = ({ onStart }: { onStart: () => void }) => (
@@ -41,40 +43,158 @@ const IntroScreen = ({ onStart }: { onStart: () => void }) => (
   </motion.div>
 );
 
+const RegistrationScreen = ({ onComplete }: { onComplete: (name: string) => void }) => {
+  const [name, setName] = useState('');
+
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    if (name.trim()) {
+      onComplete(name.trim());
+    }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="max-w-md mx-auto w-full p-8 bg-white rounded-3xl shadow-2xl shadow-indigo-100 border border-indigo-50"
+    >
+      <div className="mb-8 text-center">
+        <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-indigo-600">
+          <User className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900">Danh tính chiến binh</h2>
+        <p className="text-gray-500 text-sm mt-2">Vui lòng nhập tên của bạn để lưu kết quả vào máy chủ</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label htmlFor="user-name" className="block text-sm font-bold text-gray-700 mb-2 ml-1">
+            Họ và tên của bạn
+          </label>
+          <input
+            id="user-name"
+            type="text"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ví dụ: Nguyễn Văn A"
+            className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none transition-all font-medium"
+          />
+        </div>
+        <button
+          id="confirm-name-btn"
+          type="submit"
+          disabled={!name.trim()}
+          className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale flex items-center justify-center gap-2"
+        >
+          Tiếp tục
+          <Send className="w-5 h-5" />
+        </button>
+      </form>
+    </motion.div>
+  );
+};
+
+const MathVsCrushGate = ({ onChoice }: { onChoice: (choice: 'math' | 'crush') => void }) => (
+  <motion.div 
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="max-w-2xl mx-auto w-full p-8 text-center"
+  >
+    <div className="bg-white rounded-3xl p-12 shadow-2xl shadow-purple-100 border border-purple-50">
+      <h2 className="text-3xl font-black text-gray-900 mb-8">Một câu hỏi cực kỳ quan trọng...</h2>
+      
+      <div className="p-8 bg-purple-50 rounded-2xl mb-12 border-2 border-purple-100 italic text-xl text-purple-800 font-medium">
+        "Em sẽ chọn Toán hay chọn Crush?"
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <button
+          id="choose-math-btn"
+          onClick={() => onChoice('math')}
+          className="group flex flex-col items-center justify-center p-8 bg-indigo-600 text-white rounded-3xl hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-indigo-200"
+        >
+          <Calculator className="w-12 h-12 mb-4 animate-bounce" />
+          <span className="text-2xl font-black">CHỌN TOÁN</span>
+          <span className="text-xs mt-2 opacity-70">Vì tri thức là sức mạnh!</span>
+        </button>
+
+        <button
+          id="choose-crush-btn"
+          onClick={() => onChoice('crush')}
+          className="group flex flex-col items-center justify-center p-8 bg-white border-4 border-dashed border-pink-200 text-pink-500 rounded-3xl hover:border-pink-500 hover:bg-pink-50 hover:scale-105 active:scale-95 transition-all"
+        >
+          <Heart className="w-12 h-12 mb-4 group-hover:scale-125 transition-transform" />
+          <span className="text-2xl font-black">CHỌN CRUSH</span>
+          <span className="text-xs mt-2 opacity-70">Nhưng coi chừng bị thoát app...</span>
+        </button>
+      </div>
+    </div>
+  </motion.div>
+);
+
 const PyramidSABCD = () => (
-  <svg viewBox="0 0 200 200" className="w-full max-w-[300px] mx-auto">
-    <path d="M100 20 L40 140 L160 140 Z" fill="none" stroke="currentColor" strokeWidth="2" />
-    <path d="M100 20 L70 160 L190 160 L160 140" fill="none" stroke="currentColor" strokeWidth="2" />
-    <path d="M70 160 L40 140" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="4" />
-    <path d="M100 20 L130 150" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="4" />
-    <text x="95" y="15" className="text-[12px] fill-current">S</text>
-    <text x="30" y="145" className="text-[12px] fill-current">A</text>
-    <text x="60" y="175" className="text-[12px] fill-current">B</text>
-    <text x="195" y="175" className="text-[12px] fill-current">C</text>
-    <text x="165" y="145" className="text-[12px] fill-current">D</text>
-    <circle cx="115" cy="150" r="1.5" className="fill-current" />
-    <text x="110" y="145" className="text-[10px] fill-current">O</text>
+  <svg viewBox="0 0 200 200" className="w-full max-w-[300px] mx-auto filter drop-shadow-md">
+    <defs>
+      <linearGradient id="pyrGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#818cf8" stopOpacity="0.2" />
+        <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.1" />
+      </linearGradient>
+    </defs>
+    {/* Plane/Base ABCD */}
+    <path d="M40 140 L70 160 L190 160 L160 140 Z" fill="url(#pyrGrad)" stroke="#4f46e5" strokeWidth="1.5" />
+    {/* Hidden lines */}
+    <path d="M40 140 L70 160" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4" />
+    <path d="M100 20 L115 150" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4" />
+    
+    {/* Visible pyramid sides */}
+    <path d="M100 20 L40 140" stroke="#4f46e5" strokeWidth="2" />
+    <path d="M100 20 L70 160" stroke="#4f46e5" strokeWidth="2" />
+    <path d="M100 20 L190 160" stroke="#4f46e5" strokeWidth="2" />
+    <path d="M100 20 L160 140" stroke="#4f46e5" strokeWidth="2" />
+    
+    <text x="95" y="15" className="text-[12px] font-bold fill-indigo-800">S</text>
+    <text x="30" y="145" className="text-[12px] font-bold fill-indigo-800">A</text>
+    <text x="60" y="175" className="text-[12px] font-bold fill-indigo-800">B</text>
+    <text x="195" y="175" className="text-[12px] font-bold fill-indigo-800">C</text>
+    <text x="165" y="145" className="text-[12px] font-bold fill-indigo-800">D</text>
+    
+    <circle cx="115" cy="150" r="2" className="fill-indigo-600" />
+    <text x="120" y="148" className="text-[10px] font-bold fill-indigo-800">O</text>
+    
     {/* Right angle marker at A */}
-    <path d="M40 130 L50 130 L50 140" fill="none" stroke="currentColor" strokeWidth="1" />
+    <path d="M40 125 L55 125 L55 140" fill="none" stroke="#4f46e5" strokeWidth="1" />
   </svg>
 );
 
 const CubeABCD = () => (
-  <svg viewBox="0 0 200 200" className="w-full max-w-[300px] mx-auto">
-    <rect x="40" y="60" width="80" height="80" fill="none" stroke="currentColor" strokeWidth="2" />
-    <rect x="80" y="20" width="80" height="80" fill="none" stroke="currentColor" strokeWidth="2" />
-    <line x1="40" y1="60" x2="80" y2="20" stroke="currentColor" strokeWidth="2" />
-    <line x1="120" y1="60" x2="160" y2="20" stroke="currentColor" strokeWidth="2" />
-    <line x1="120" y1="140" x2="160" y2="100" stroke="currentColor" strokeWidth="2" />
-    <line x1="40" y1="140" x2="80" y2="100" stroke="currentColor" strokeWidth="2" strokeDasharray="4" />
-    <text x="30" y="155" className="text-[10px] fill-current">B</text>
-    <text x="125" y="155" className="text-[10px] fill-current">C</text>
-    <text x="125" y="55" className="text-[10px] fill-current">B'</text>
-    <text x="30" y="55" className="text-[10px] fill-current">A'</text>
-    <text x="70" y="15" className="text-[10px] fill-current">D'</text>
-    <text x="165" y="15" className="text-[10px] fill-current">C'</text>
-    <text x="165" y="115" className="text-[10px] fill-current">D</text>
-    <text x="70" y="115" className="text-[10px] fill-current">A</text>
+  <svg viewBox="0 0 200 200" className="w-full max-w-[300px] mx-auto filter drop-shadow-md">
+    <defs>
+      <linearGradient id="cubeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#818cf8" stopOpacity="0.2" />
+        <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.05" />
+      </linearGradient>
+    </defs>
+    {/* Front Face */}
+    <rect x="40" y="60" width="80" height="80" fill="url(#cubeGrad)" stroke="#4f46e5" strokeWidth="2" />
+    {/* Back Face */}
+    <rect x="80" y="20" width="80" height="80" fill="none" stroke="#4f46e5" strokeWidth="1.5" strokeDasharray="3" />
+    {/* Connecting edges */}
+    <line x1="40" y1="60" x2="80" y2="20" stroke="#4f46e5" strokeWidth="2" />
+    <line x1="120" y1="60" x2="160" y2="20" stroke="#4f46e5" strokeWidth="2" />
+    <line x1="120" y1="140" x2="160" y2="100" stroke="#4f46e5" strokeWidth="2" />
+    <line x1="40" y1="140" x2="80" y2="100" stroke="#4f46e5" strokeWidth="1.5" strokeDasharray="3" />
+    
+    {/* Labels */}
+    <text x="30" y="155" className="text-[10px] font-bold fill-indigo-800">B</text>
+    <text x="125" y="155" className="text-[10px] font-bold fill-indigo-800">C</text>
+    <text x="120" y="55" className="text-[10px] font-bold fill-indigo-800">B'</text>
+    <text x="30" y="55" className="text-[10px] font-bold fill-indigo-800">A'</text>
+    <text x="75" y="15" className="text-[10px] font-bold fill-indigo-800">D'</text>
+    <text x="165" y="15" className="text-[10px] font-bold fill-indigo-800">C'</text>
+    <text x="165" y="115" className="text-[10px] font-bold fill-indigo-800">D</text>
+    <text x="70" y="115" className="text-[10px] font-bold fill-indigo-800">A</text>
   </svg>
 );
 
@@ -106,32 +226,55 @@ const TimeTable = () => (
 );
 
 const PyramidSABC = () => (
-  <svg viewBox="0 0 200 200" className="w-full max-w-[300px] mx-auto">
-    <path d="M100 20 L40 140 L160 140 Z" fill="none" stroke="currentColor" strokeWidth="2" />
-    <path d="M100 20 L100 170 L160 140" fill="none" stroke="currentColor" strokeWidth="2" />
-    <path d="M40 140 L100 170" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="4" />
-    <text x="95" y="15" className="text-[12px] fill-current">S</text>
-    <text x="30" y="145" className="text-[12px] fill-current">A</text>
-    <text x="95" y="185" className="text-[12px] fill-current">B</text>
-    <text x="165" y="145" className="text-[12px] fill-current">C</text>
+  <svg viewBox="0 0 200 200" className="w-full max-w-[300px] mx-auto filter drop-shadow-md">
+    <defs>
+      <linearGradient id="pyrSABC" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#818cf8" stopOpacity="0.2" />
+        <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.1" />
+      </linearGradient>
+    </defs>
+    {/* Base ABC */}
+    <path d="M40 140 L100 170 L160 140" fill="url(#pyrSABC)" stroke="#4f46e5" strokeWidth="1.5" />
+    <path d="M40 140 L160 140" stroke="#4f46e5" strokeWidth="2" />
+    {/* Hidden base edge */}
+    <path d="M40 140 L100 170" stroke="#6366f1" strokeWidth="1.5" strokeDasharray="4" />
+    
+    {/* Visible sides */}
+    <path d="M100 20 L40 140" stroke="#4f46e5" strokeWidth="2" />
+    <path d="M100 20 L100 170" stroke="#4f46e5" strokeWidth="2" />
+    <path d="M100 20 L160 140" stroke="#4f46e5" strokeWidth="2" />
+    
+    <text x="95" y="15" className="text-[12px] font-bold fill-indigo-800">S</text>
+    <text x="30" y="145" className="text-[12px] font-bold fill-indigo-800">A</text>
+    <text x="95" y="185" className="text-[12px] font-bold fill-indigo-800">B</text>
+    <text x="165" y="145" className="text-[12px] font-bold fill-indigo-800">C</text>
   </svg>
 );
 
 const RubberStep = () => (
-  <svg viewBox="0 0 200 200" className="w-full max-w-[300px] mx-auto">
-    <path d="M40 160 L160 160 L160 100 L40 130 Z" fill="none" stroke="currentColor" strokeWidth="2" />
-    <path d="M160 100 L120 60 L20 90 L40 130" fill="none" stroke="currentColor" strokeWidth="2" />
-    <path d="M120 60 L120 120 L20 150 L20 90" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="4" />
-    <text x="165" y="165" className="text-[10px] fill-current">A</text>
-    <text x="165" y="95" className="text-[10px] fill-current">B</text>
-    <text x="35" y="170" className="text-[10px] fill-current">C</text>
-    <text x="35" y="130" className="text-[10px] fill-current">D</text>
-    <text x="125" y="60" className="text-[10px] fill-current">E</text>
-    <text x="15" y="90" className="text-[10px] fill-current">F</text>
+  <svg viewBox="0 0 200 200" className="w-full max-w-[300px] mx-auto filter drop-shadow-md">
+     <defs>
+      <linearGradient id="stepGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#818cf8" stopOpacity="0.3" />
+        <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.1" />
+      </linearGradient>
+    </defs>
+    {/* Main body */}
+    <path d="M40 160 L160 160 L160 100 L40 130 Z" fill="url(#stepGrad)" stroke="#4f46e5" strokeWidth="2" />
+    <path d="M160 100 L120 60 L20 90 L40 130" fill="url(#stepGrad)" stroke="#4f46e5" strokeWidth="2" />
+    {/* Hidden edges */}
+    <path d="M120 60 L120 120 L20 150 L20 90" fill="none" stroke="#6366f1" strokeWidth="1.5" strokeDasharray="4" />
+    
+    <text x="165" y="165" className="text-[10px] font-bold fill-indigo-800">A</text>
+    <text x="165" y="95" className="text-[10px] font-bold fill-indigo-800">B</text>
+    <text x="35" y="170" className="text-[10px] font-bold fill-indigo-800">C</text>
+    <text x="35" y="130" className="text-[10px] font-bold fill-indigo-800">D</text>
+    <text x="125" y="60" className="text-[10px] font-bold fill-indigo-800">E</text>
+    <text x="15" y="90" className="text-[10px] font-bold fill-indigo-800">F</text>
   </svg>
 );
 
-const QuizGame = ({ questions, onFinish }: { questions: typeof QUESTIONS; onFinish: (result: QuizResult) => void }) => {
+const QuizGame = ({ questions, onFinish }: { questions: typeof QUESTIONS; onFinish: (result: Omit<QuizResult, 'userName'>) => void }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
@@ -227,8 +370,11 @@ const QuizGame = ({ questions, onFinish }: { questions: typeof QUESTIONS; onFini
             {currentQuestion.type === 'multiple' ? 'Trắc nghiệm 4 lựa chọn' : 'Đúng hay Sai?'}
           </div>
           {currentQuestion.context && (
-            <div className="text-gray-600 italic mb-4 p-4 bg-gray-50 rounded-xl border-l-4 border-indigo-200">
-              {currentQuestion.context}
+            <div className="mb-6">
+              <div className="text-[10px] font-bold text-gray-400 uppercase mb-2">Dữ liệu bài toán:</div>
+              <div className="text-gray-600 italic p-4 bg-indigo-50/50 rounded-xl border-l-4 border-indigo-300">
+                {currentQuestion.context}
+              </div>
             </div>
           )}
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight mb-6">
@@ -365,25 +511,60 @@ const ResultScreen = ({ result, onRestart }: { result: QuizResult, onRestart: ()
 };
 
 export default function App() {
-  const [gameState, setGameState] = useState<'intro' | 'playing' | 'result'>('intro');
+  const [gameState, setGameState] = useState<'intro' | 'register' | 'gate' | 'playing' | 'result'>('intro');
+  const [userName, setUserName] = useState('');
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
   const [shuffledQuestions, setShuffledQuestions] = useState<typeof QUESTIONS>([]);
+  const [isSaving, setIsSaving] = useState(false);
 
   const startQuiz = () => {
-    // Fisher-Yates shuffle
-    const newQuestions = [...QUESTIONS];
-    for (let i = newQuestions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [newQuestions[i], newQuestions[j]] = [newQuestions[j], newQuestions[i]];
-    }
-    setShuffledQuestions(newQuestions);
-    setGameState('playing');
-    setQuizResult(null);
+    setGameState('register');
   };
 
-  const finishQuiz = (result: QuizResult) => {
-    setQuizResult(result);
+  const handleRegistration = (name: string) => {
+    setUserName(name);
+    setGameState('gate');
+  };
+
+  const handleGateChoice = (choice: 'math' | 'crush') => {
+    if (choice === 'math') {
+      // Fisher-Yates shuffle
+      const newQuestions = [...QUESTIONS];
+      for (let i = newQuestions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newQuestions[i], newQuestions[j]] = [newQuestions[j], newQuestions[i]];
+      }
+      setShuffledQuestions(newQuestions);
+      setGameState('playing');
+      setQuizResult(null);
+    } else {
+      // "Exit" effect
+      window.location.href = "about:blank";
+    }
+  };
+
+  const finishQuiz = async (result: Omit<QuizResult, 'userName'>) => {
+    const finalResult = {
+      ...result,
+      userName,
+    } as QuizResult;
+
+    setQuizResult(finalResult);
     setGameState('result');
+    
+    // Save to Firebase
+    setIsSaving(true);
+    try {
+      await addDoc(collection(db, 'quizResults'), {
+        ...finalResult,
+        createdAt: serverTimestamp(),
+      });
+      console.log('Result saved successfully');
+    } catch (e) {
+      console.error('Error saving result:', e);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -399,6 +580,28 @@ export default function App() {
               className="w-full"
             >
               <IntroScreen onStart={startQuiz} />
+            </motion.div>
+          )}
+          {gameState === 'register' && (
+            <motion.div 
+              key="register"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="w-full"
+            >
+              <RegistrationScreen onComplete={handleRegistration} />
+            </motion.div>
+          )}
+          {gameState === 'gate' && (
+            <motion.div 
+              key="gate"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="w-full"
+            >
+              <MathVsCrushGate onChoice={handleGateChoice} />
             </motion.div>
           )}
           {gameState === 'playing' && (
@@ -418,9 +621,15 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full"
+              className="w-full relative"
             >
-              <ResultScreen result={quizResult} onRestart={startQuiz} />
+              {isSaving && (
+                <div className="absolute top-4 right-4 flex items-center gap-2 text-xs font-bold text-indigo-500 bg-white px-3 py-1 rounded-full shadow-sm border border-indigo-100">
+                  <div className="w-2 h-2 bg-indigo-500 rounded-full animate-ping" />
+                  Đang sao lưu dữ liệu...
+                </div>
+              )}
+              <ResultScreen result={quizResult} onRestart={() => setGameState('intro')} />
             </motion.div>
           )}
         </AnimatePresence>

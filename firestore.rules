@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Entity validation
+    function isValidQuizResult(data) {
+      return data.userName is string && data.userName.size() > 0 && data.userName.size() <= 100 &&
+             data.score is number &&
+             data.correctAnswers is number &&
+             data.wrongAnswers is number &&
+             data.totalQuestions is number &&
+             data.timeSpent is number &&
+             data.createdAt == request.time &&
+             data.keys().hasAll(['userName', 'score', 'correctAnswers', 'wrongAnswers', 'totalQuestions', 'timeSpent', 'createdAt']) &&
+             data.keys().size() == 7;
+    }
+
+    // Rules for quizResults
+    match /quizResults/{resultId} {
+      // In this specific app, results are public to read (for leaderboards maybe) but anonymous write is allowed for the demo.
+      // However, we should restrict read to prevent scrapers if not needed for everyone.
+      // For this app's requirement, we just need to record it.
+      allow create: if isValidQuizResult(request.resource.data);
+      allow read: if true; // Allow anyone to read results (could be for a leaderboard)
+    }
+  }
+}

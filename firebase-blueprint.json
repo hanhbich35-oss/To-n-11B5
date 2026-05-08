@@ -1,0 +1,47 @@
+{
+  "entities": {
+    "QuizResult": {
+      "title": "Quiz Result",
+      "description": "Stores user names and their quiz performance results.",
+      "type": "object",
+      "properties": {
+        "userName": {
+          "type": "string",
+          "description": "Full name of the player."
+        },
+        "score": {
+          "type": "number",
+          "description": "Total score earned."
+        },
+        "correctAnswers": {
+          "type": "number",
+          "description": "Number of correct answers."
+        },
+        "wrongAnswers": {
+          "type": "number",
+          "description": "Number of wrong answers."
+        },
+        "totalQuestions": {
+          "type": "number",
+          "description": "Total questions attempted."
+        },
+        "timeSpent": {
+          "type": "number",
+          "description": "Time spent in seconds."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the result was recorded."
+        }
+      },
+      "required": ["userName", "score", "correctAnswers", "wrongAnswers", "totalQuestions", "timeSpent", "createdAt"]
+    }
+  },
+  "firestore": {
+    "quizResults": {
+      "schema": "QuizResult",
+      "description": "Collection of all quiz results."
+    }
+  }
+}
