@@ -23,7 +23,7 @@ const IntroScreen = ({ onStart }: { onStart: () => void }) => (
       Đấu Trường <span className="text-indigo-600">Kiến Thức</span>
     </h1>
     <p className="text-gray-500 text-lg mb-4 max-w-md">
-      Thử thách bản thân với 30 câu hỏi trắc nghiệm Toán học và Khoa học Tự nhiên. Bạn đã sẵn sàng chưa?
+      Thử thách bản thân với 35 câu hỏi trắc nghiệm Toán học và Khoa học Tự nhiên. Bạn đã sẵn sàng chưa?
     </p>
     <p className="text-indigo-500 font-medium mb-12">
       Tạo bởi Hà Thị Bích Hạnh
@@ -131,7 +131,7 @@ const RubberStep = () => (
   </svg>
 );
 
-const QuizGame = ({ onFinish }: { onFinish: (result: QuizResult) => void }) => {
+const QuizGame = ({ questions, onFinish }: { questions: typeof QUESTIONS; onFinish: (result: QuizResult) => void }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
@@ -141,7 +141,7 @@ const QuizGame = ({ onFinish }: { onFinish: (result: QuizResult) => void }) => {
   const [isAnswered, setIsAnswered] = useState(false);
   const [startTime] = useState(Date.now());
 
-  const currentQuestion = QUESTIONS[currentIndex];
+  const currentQuestion = questions[currentIndex];
 
   useEffect(() => {
     if (isAnswered) return;
@@ -168,7 +168,7 @@ const QuizGame = ({ onFinish }: { onFinish: (result: QuizResult) => void }) => {
     }
 
     setTimeout(() => {
-      if (currentIndex < QUESTIONS.length - 1) {
+      if (currentIndex < questions.length - 1) {
         setCurrentIndex(prev => prev + 1);
         setSelectedAnswer(null);
         setIsAnswered(false);
@@ -176,7 +176,7 @@ const QuizGame = ({ onFinish }: { onFinish: (result: QuizResult) => void }) => {
       } else {
         onFinish({
           score: score + (isCorrect ? (timeLeft * 10) + 100 : 0),
-          totalQuestions: QUESTIONS.length,
+          totalQuestions: questions.length,
           correctAnswers: correctCount + (isCorrect ? 1 : 0),
           wrongAnswers: wrongCount + (isCorrect ? 0 : 1),
           timeSpent: Math.floor((Date.now() - startTime) / 1000)
@@ -190,7 +190,7 @@ const QuizGame = ({ onFinish }: { onFinish: (result: QuizResult) => void }) => {
       {/* Header Info */}
       <div className="flex items-center justify-between mb-8">
         <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100 font-bold text-indigo-600">
-          Câu {currentIndex + 1} / {QUESTIONS.length}
+          Câu {currentIndex + 1} / {questions.length}
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100">
@@ -209,7 +209,7 @@ const QuizGame = ({ onFinish }: { onFinish: (result: QuizResult) => void }) => {
       <div className="w-full h-3 bg-gray-100 rounded-full mb-12 overflow-hidden border border-gray-50">
         <motion.div 
           initial={{ width: 0 }}
-          animate={{ width: `${((currentIndex + 1) / QUESTIONS.length) * 100}%` }}
+          animate={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
           className="h-full bg-indigo-500"
         />
       </div>
@@ -367,8 +367,16 @@ const ResultScreen = ({ result, onRestart }: { result: QuizResult, onRestart: ()
 export default function App() {
   const [gameState, setGameState] = useState<'intro' | 'playing' | 'result'>('intro');
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
+  const [shuffledQuestions, setShuffledQuestions] = useState<typeof QUESTIONS>([]);
 
   const startQuiz = () => {
+    // Fisher-Yates shuffle
+    const newQuestions = [...QUESTIONS];
+    for (let i = newQuestions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newQuestions[i], newQuestions[j]] = [newQuestions[j], newQuestions[i]];
+    }
+    setShuffledQuestions(newQuestions);
     setGameState('playing');
     setQuizResult(null);
   };
@@ -401,7 +409,7 @@ export default function App() {
               exit={{ opacity: 0 }}
               className="w-full"
             >
-              <QuizGame onFinish={finishQuiz} />
+              <QuizGame questions={shuffledQuestions} onFinish={finishQuiz} />
             </motion.div>
           )}
           {gameState === 'result' && quizResult && (

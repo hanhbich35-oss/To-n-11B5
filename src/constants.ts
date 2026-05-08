@@ -245,5 +245,45 @@ export const QUESTIONS: Question[] = [
     text: "Nếu một đường thẳng vuông góc với hai đường thẳng cắt nhau nằm trong một mặt phẳng thì nó vuông góc với mặt phẳng đó.",
     correctAnswer: true,
     explanation: "Đây là điều kiện để một đường thẳng vuông góc với một mặt phẳng."
+  },
+  {
+    id: 31,
+    type: 'multiple',
+    text: "Nghiệm của phương trình log_2(x - 5) = 4 là:",
+    options: ["x = 21", "x = 13", "x = 11", "x = 9"],
+    correctAnswer: 0,
+    explanation: "x - 5 = 2^4 = 16 => x = 21."
+  },
+  {
+    id: 32,
+    type: 'multiple',
+    text: "Đạo hàm của hàm số y = tan(x) là:",
+    options: ["y' = 1/cos²x", "y' = -1/sin²x", "y' = 1/sin²x", "y' = -1/cos²x"],
+    correctAnswer: 0,
+    explanation: "Công thức đạo hàm cơ bản: (tan x)' = 1/cos²x."
+  },
+  {
+    id: 33,
+    type: 'multiple',
+    text: "Cho hai biến cố độc lập A và B có P(A) = 0,3 và P(B) = 0,4. Xác suất P(AB) là:",
+    options: ["0,7", "0,1", "0,12", "0,72"],
+    correctAnswer: 2,
+    explanation: "Với A, B độc lập: P(AB) = P(A).P(B) = 0,3 * 0,4 = 0,12."
+  },
+  {
+    id: 34,
+    type: 'multiple',
+    text: "Diện tích xung quanh của hình chóp tứ giác đều có cạnh đáy bằng a và trung đoạn bằng 2a là:",
+    options: ["4a²", "2a²", "a²", "8a²"],
+    correctAnswer: 0,
+    explanation: "Sxq = p.d = (4a/2) * 2a = 4a²."
+  },
+  {
+    id: 35,
+    type: 'multiple',
+    text: "Tập nghiệm của bất phương trình (1/2)^x > 8 là:",
+    options: ["x > 3", "x < -3", "x > -3", "x < 3"],
+    correctAnswer: 1,
+    explanation: "(1/2)^x > (1/2)^(-3). Vì cơ số 1/2 < 1 nên x < -3."
   }
 ];
