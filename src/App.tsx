@@ -127,7 +127,7 @@ const MathVsCrushGate = ({ onChoice }: { onChoice: (choice: 'math' | 'crush') =>
         >
           <Heart className="w-12 h-12 mb-4 group-hover:scale-125 transition-transform" />
           <span className="text-2xl font-black">CHỌN CRUSH</span>
-          <span className="text-xs mt-2 opacity-70">Nhưng coi chừng bị thoát app...</span>
+          <span className="text-xs mt-2 opacity-70">Nhưng coi chừng bị từ chối đó nha...</span>
         </button>
       </div>
     </div>
@@ -142,29 +142,31 @@ const PyramidSABCD = () => (
         <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.1" />
       </linearGradient>
     </defs>
-    {/* Plane/Base ABCD */}
-    <path d="M40 140 L70 160 L190 160 L160 140 Z" fill="url(#pyrGrad)" stroke="#4f46e5" strokeWidth="1.5" />
-    {/* Hidden lines */}
-    <path d="M40 140 L70 160" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4" />
-    <path d="M100 20 L115 150" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4" />
+    {/* Points: A(80,120) back-left, B(40,160) front-left, C(160,160) front-right, D(200,120) back-right ? Adjusting for 200x200 viewbox */}
+    {/* New coords: A(60,130), B(30,170), C(130,170), D(160,130) -> Center O approx (95, 150) -> S(95, 30) */}
     
-    {/* Visible pyramid sides */}
-    <path d="M100 20 L40 140" stroke="#4f46e5" strokeWidth="2" />
-    <path d="M100 20 L70 160" stroke="#4f46e5" strokeWidth="2" />
-    <path d="M100 20 L190 160" stroke="#4f46e5" strokeWidth="2" />
-    <path d="M100 20 L160 140" stroke="#4f46e5" strokeWidth="2" />
+    {/* Base edges (Hidden) */}
+    <path d="M60 130 L30 170" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4" />
+    <path d="M60 130 L160 130" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4" />
+    <path d="M95 30 L60 130" fill="none" stroke="#6366f1" strokeWidth="1.5" strokeDasharray="4" />
     
-    <text x="95" y="15" className="text-[12px] font-bold fill-indigo-800">S</text>
-    <text x="30" y="145" className="text-[12px] font-bold fill-indigo-800">A</text>
-    <text x="60" y="175" className="text-[12px] font-bold fill-indigo-800">B</text>
-    <text x="195" y="175" className="text-[12px] font-bold fill-indigo-800">C</text>
-    <text x="165" y="145" className="text-[12px] font-bold fill-indigo-800">D</text>
+    {/* Visible Base/Sides */}
+    <path d="M30 170 L130 170 L160 130" fill="url(#pyrGrad)" fillOpacity="0.5" stroke="#4f46e5" strokeWidth="2" strokeLinejoin="round" />
+    <path d="M95 30 L30 170" stroke="#4f46e5" strokeWidth="2" />
+    <path d="M95 30 L130 170" stroke="#4f46e5" strokeWidth="2" />
+    <path d="M95 30 L160 130" stroke="#4f46e5" strokeWidth="2" />
     
-    <circle cx="115" cy="150" r="2" className="fill-indigo-600" />
-    <text x="120" y="148" className="text-[10px] font-bold fill-indigo-800">O</text>
+    <text x="90" y="25" className="text-[14px] font-bold fill-indigo-900">S</text>
+    <text x="50" y="130" className="text-[12px] font-bold fill-indigo-800">A</text>
+    <text x="20" y="185" className="text-[12px] font-bold fill-indigo-800">B</text>
+    <text x="135" y="185" className="text-[12px] font-bold fill-indigo-800">C</text>
+    <text x="165" y="130" className="text-[12px] font-bold fill-indigo-800">D</text>
     
-    {/* Right angle marker at A */}
-    <path d="M40 125 L55 125 L55 140" fill="none" stroke="#4f46e5" strokeWidth="1" />
+    <circle cx="95" cy="150" r="2" className="fill-indigo-600" />
+    <text x="100" y="148" className="text-[10px] font-bold fill-indigo-800">O</text>
+    
+    {/* Height SO */}
+    <line x1="95" y1="30" x2="95" y2="150" stroke="#6366f1" strokeWidth="1" strokeDasharray="4" />
   </svg>
 );
 
@@ -176,25 +178,36 @@ const CubeABCD = () => (
         <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.05" />
       </linearGradient>
     </defs>
-    {/* Front Face */}
-    <rect x="40" y="60" width="80" height="80" fill="url(#cubeGrad)" stroke="#4f46e5" strokeWidth="2" />
-    {/* Back Face */}
-    <rect x="80" y="20" width="80" height="80" fill="none" stroke="#4f46e5" strokeWidth="1.5" strokeDasharray="3" />
-    {/* Connecting edges */}
-    <line x1="40" y1="60" x2="80" y2="20" stroke="#4f46e5" strokeWidth="2" />
-    <line x1="120" y1="60" x2="160" y2="20" stroke="#4f46e5" strokeWidth="2" />
-    <line x1="120" y1="140" x2="160" y2="100" stroke="#4f46e5" strokeWidth="2" />
-    <line x1="40" y1="140" x2="80" y2="100" stroke="#4f46e5" strokeWidth="1.5" strokeDasharray="3" />
     
-    {/* Labels */}
-    <text x="30" y="155" className="text-[10px] font-bold fill-indigo-800">B</text>
-    <text x="125" y="155" className="text-[10px] font-bold fill-indigo-800">C</text>
-    <text x="120" y="55" className="text-[10px] font-bold fill-indigo-800">B'</text>
-    <text x="30" y="55" className="text-[10px] font-bold fill-indigo-800">A'</text>
-    <text x="75" y="15" className="text-[10px] font-bold fill-indigo-800">D'</text>
-    <text x="165" y="15" className="text-[10px] font-bold fill-indigo-800">C'</text>
-    <text x="165" y="115" className="text-[10px] font-bold fill-indigo-800">D</text>
-    <text x="70" y="115" className="text-[10px] font-bold fill-indigo-800">A</text>
+    {/* Hidden Back Edges (A is hidden vertex) */}
+    {/* Back left bottom A(80, 110), Back back edges: AD, AA', AB */}
+    <path d="M80 110 L160 110" fill="none" stroke="#4f46e5" strokeWidth="1.5" strokeDasharray="3" />
+    <path d="M80 110 L40 140" fill="none" stroke="#4f46e5" strokeWidth="1.5" strokeDasharray="3" />
+    <path d="M80 110 L80 30" fill="none" stroke="#4f46e5" strokeWidth="1.5" strokeDasharray="3" />
+
+    {/* Visible faces */}
+    {/* Front face: A'(40,30), B'(120,30), C(120,110), B(40,110) - wait matching image labels */}
+    {/* Image: Front square vertices TL=A', TR=B', BR=C, BL=B */}
+    <path d="M40 60 L120 60 L120 140 L40 140 Z" fill="url(#cubeGrad)" stroke="#4f46e5" strokeWidth="2" />
+    
+    {/* Top face visible edges */}
+    <path d="M40 60 L80 20 L160 20 L120 60" fill="url(#cubeGrad)" stroke="#4f46e5" strokeWidth="2" strokeLinejoin="round" />
+    
+    {/* Right side visible edges */}
+    <path d="M120 140 L160 100 L160 20" fill="none" stroke="#4f46e5" strokeWidth="2" strokeLinejoin="round" />
+
+    {/* Labels to match image EXACTLY */}
+    {/* Front Face: Top-Left=A', Top-Right=B', Bottom-Right=C, Bottom-Left=B */}
+    <text x="30" y="55" className="text-[12px] font-bold fill-indigo-800">A'</text>
+    <text x="125" y="55" className="text-[12px] font-bold fill-indigo-800">B'</text>
+    <text x="125" y="155" className="text-[12px] font-bold fill-indigo-800">C</text>
+    <text x="30" y="155" className="text-[12px] font-bold fill-indigo-800">B</text>
+    
+    {/* Back Face (offset): Top-Left=D', Top-Right=C', Bottom-Right=D, Bottom-Left=A */}
+    <text x="75" y="15" className="text-[12px] font-bold fill-indigo-800">D'</text>
+    <text x="165" y="15" className="text-[12px] font-bold fill-indigo-800">C'</text>
+    <text x="165" y="115" className="text-[12px] font-bold fill-indigo-800">D</text>
+    <text x="70" y="115" className="text-[12px] font-bold opacity-40 fill-indigo-800 italic">A</text>
   </svg>
 );
 
@@ -233,21 +246,21 @@ const PyramidSABC = () => (
         <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.1" />
       </linearGradient>
     </defs>
-    {/* Base ABC */}
-    <path d="M40 140 L100 170 L160 140" fill="url(#pyrSABC)" stroke="#4f46e5" strokeWidth="1.5" />
-    <path d="M40 140 L160 140" stroke="#4f46e5" strokeWidth="2" />
-    {/* Hidden base edge */}
-    <path d="M40 140 L100 170" stroke="#6366f1" strokeWidth="1.5" strokeDasharray="4" />
+    {/* Points: A(100,130) back, B(40,170) front-left, C(160,170) front-right, S(100,30) */}
     
-    {/* Visible sides */}
-    <path d="M100 20 L40 140" stroke="#4f46e5" strokeWidth="2" />
-    <path d="M100 20 L100 170" stroke="#4f46e5" strokeWidth="2" />
-    <path d="M100 20 L160 140" stroke="#4f46e5" strokeWidth="2" />
+    {/* Hidden edges */}
+    <path d="M100 130 L40 170" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4" />
+    <path d="M100 130 L160 170" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4" />
+    <path d="M100 30 L100 130" fill="none" stroke="#6366f1" strokeWidth="1.5" strokeDasharray="4" />
     
-    <text x="95" y="15" className="text-[12px] font-bold fill-indigo-800">S</text>
-    <text x="30" y="145" className="text-[12px] font-bold fill-indigo-800">A</text>
-    <text x="95" y="185" className="text-[12px] font-bold fill-indigo-800">B</text>
-    <text x="165" y="145" className="text-[12px] font-bold fill-indigo-800">C</text>
+    {/* Base/Sides */}
+    <path d="M40 170 L160 170 L100 30 Z" fill="url(#pyrSABC)" stroke="#4f46e5" strokeWidth="2" strokeLinejoin="round" />
+    <path d="M100 30 L40 170" stroke="#4f46e5" strokeWidth="2" />
+    
+    <text x="95" y="25" className="text-[14px] font-bold fill-indigo-900">S</text>
+    <text x="95" y="125" className="text-[12px] font-bold fill-indigo-800">A</text>
+    <text x="30" y="185" className="text-[12px] font-bold fill-indigo-800">B</text>
+    <text x="165" y="185" className="text-[12px] font-bold fill-indigo-800">C</text>
   </svg>
 );
 
