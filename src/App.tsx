@@ -5,13 +5,71 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Trophy, Play, RotateCcw, CheckCircle2, XCircle, Timer, Award, User, Heart, Calculator, Send } from 'lucide-react';
+import { Trophy, Play, RotateCcw, CheckCircle2, XCircle, Timer, Award, User, Heart, Calculator, Send, Lock } from 'lucide-react';
 import { QUESTIONS } from './constants';
 import { QuizResult } from './types';
 import { db } from './services/firebase';
 import { collection, addDoc, serverTimestamp, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
 // Components
+const PasscodeScreen = ({ onUnlock }: { onUnlock: () => void }) => {
+  const [passcode, setPasscode] = useState('');
+  const [error, setError] = useState(false);
+
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    if (passcode === '080423') {
+      onUnlock();
+    } else {
+      setError(true);
+      setPasscode('');
+      setTimeout(() => setError(false), 2000);
+    }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="max-w-md mx-auto w-full p-8 bg-white rounded-3xl shadow-2xl shadow-indigo-100 border border-indigo-50"
+    >
+      <div className="mb-8 text-center">
+        <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-indigo-600">
+          <Lock className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900">Ứng dụng đã khóa</h2>
+        <p className="text-gray-500 text-sm mt-2">Vui lòng nhập mật mã để truy cập nội dung</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <input
+            id="passcode-input"
+            type="password"
+            required
+            value={passcode}
+            onChange={(e) => setPasscode(e.target.value)}
+            placeholder="Nhập mật mã..."
+            className={`w-full px-5 py-4 bg-gray-50 border-2 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none transition-all font-mono text-center text-2xl tracking-[1em] ${
+              error ? 'border-red-300 animate-shake bg-red-50' : 'border-gray-100'
+            }`}
+          />
+          {error && (
+            <p className="text-red-500 text-xs mt-2 text-center font-bold">Mật mã không chính xác!</p>
+          )}
+        </div>
+        <button
+          id="unlock-btn"
+          type="submit"
+          className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg hover:bg-indigo-700 transition-all active:scale-95 flex items-center justify-center gap-2"
+        >
+          Mở khóa
+        </button>
+      </form>
+    </motion.div>
+  );
+};
+
 const IntroScreen = ({ onStart, onShowLeaderboard }: { onStart: () => void, onShowLeaderboard: () => void }) => (
   <motion.div 
     initial={{ opacity: 0, y: 20 }}
@@ -238,31 +296,34 @@ const PyramidSABCD = () => (
         <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.1" />
       </linearGradient>
     </defs>
-    {/* Points: A(80,120) back-left, B(40,160) front-left, C(160,160) front-right, D(200,120) back-right ? Adjusting for 200x200 viewbox */}
-    {/* New coords: A(60,130), B(30,170), C(130,170), D(160,130) -> Center O approx (95, 150) -> S(95, 30) */}
     
-    {/* Base edges (Hidden) */}
-    <path d="M60 130 L30 170" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4" />
-    <path d="M60 130 L160 130" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4" />
-    <path d="M95 30 L60 130" fill="none" stroke="#6366f1" strokeWidth="1.5" strokeDasharray="4" />
+    {/* Coordinate mapping: S directly above A (SA perp to base) */}
+    {/* A(80,100), B(40,150), C(120,150), D(160,100), S(80,30) */}
+    
+    {/* Hidden Edges */}
+    <path d="M80 100 L40 150" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4" />
+    <path d="M80 100 L160 100" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4" />
+    <path d="M80 30 L80 100" fill="none" stroke="#6366f1" strokeWidth="2" strokeDasharray="4" />
     
     {/* Visible Base/Sides */}
-    <path d="M30 170 L130 170 L160 130" fill="url(#pyrGrad)" fillOpacity="0.5" stroke="#4f46e5" strokeWidth="2" strokeLinejoin="round" />
-    <path d="M95 30 L30 170" stroke="#4f46e5" strokeWidth="2" />
-    <path d="M95 30 L130 170" stroke="#4f46e5" strokeWidth="2" />
-    <path d="M95 30 L160 130" stroke="#4f46e5" strokeWidth="2" />
+    <path d="M40 150 L120 150 L160 100" fill="url(#pyrGrad)" stroke="#4f46e5" strokeWidth="2" strokeLinejoin="round" />
+    <path d="M80 30 L40 150" stroke="#4f46e5" strokeWidth="2" />
+    <path d="M80 30 L120 150" stroke="#4f46e5" strokeWidth="2" />
+    <path d="M80 30 L160 100" stroke="#4f46e5" strokeWidth="2" />
     
-    <text x="90" y="25" className="text-[14px] font-bold fill-indigo-900">S</text>
-    <text x="50" y="130" className="text-[12px] font-bold fill-indigo-800">A</text>
-    <text x="20" y="185" className="text-[12px] font-bold fill-indigo-800">B</text>
-    <text x="135" y="185" className="text-[12px] font-bold fill-indigo-800">C</text>
-    <text x="165" y="130" className="text-[12px] font-bold fill-indigo-800">D</text>
+    {/* Labels */}
+    <text x="75" y="25" className="text-[14px] font-bold fill-indigo-900">S</text>
+    <text x="85" y="105" className="text-[12px] font-bold fill-indigo-800 opacity-60 italic">A</text>
+    <text x="25" y="165" className="text-[12px] font-bold fill-indigo-800">B</text>
+    <text x="115" y="165" className="text-[12px] font-bold fill-indigo-800">C</text>
+    <text x="165" y="105" className="text-[12px] font-bold fill-indigo-800">D</text>
     
-    <circle cx="95" cy="150" r="2" className="fill-indigo-600" />
-    <text x="100" y="148" className="text-[10px] font-bold fill-indigo-800">O</text>
+    {/* Center O */}
+    <circle cx="100" cy="125" r="2" className="fill-indigo-600" />
+    <text x="105" y="123" className="text-[10px] font-bold fill-indigo-800">O</text>
     
-    {/* Height SO */}
-    <line x1="95" y1="30" x2="95" y2="150" stroke="#6366f1" strokeWidth="1" strokeDasharray="4" />
+    {/* Right angle marker at A */}
+    <path d="M80 90 L70 90 L70 100" fill="none" stroke="#4f46e5" strokeWidth="1" className="opacity-40" />
   </svg>
 );
 
@@ -275,35 +336,39 @@ const CubeABCD = () => (
       </linearGradient>
     </defs>
     
-    {/* Hidden Back Edges (A is hidden vertex) */}
-    {/* Back left bottom A(80, 110), Back back edges: AD, AA', AB */}
-    <path d="M80 110 L160 110" fill="none" stroke="#4f46e5" strokeWidth="1.5" strokeDasharray="3" />
-    <path d="M80 110 L40 140" fill="none" stroke="#4f46e5" strokeWidth="1.5" strokeDasharray="3" />
-    <path d="M80 110 L80 30" fill="none" stroke="#4f46e5" strokeWidth="1.5" strokeDasharray="3" />
+    {/* Standard labeling to match user image EXACTLY: */}
+    {/* Front face: A'(TL), B'(TR), C(BR), B(BL) */}
+    {/* Back face: D'(TL), C'(TR), D(BR), A(BL) */}
+    {/* Coords: 
+       A(80,100), D(160,100), D'(80,20), C'(160,20)
+       B(40,140), C(120,140), B'(120,60), A'(40,60)
+    */}
 
-    {/* Visible faces */}
-    {/* Front face: A'(40,30), B'(120,30), C(120,110), B(40,110) - wait matching image labels */}
-    {/* Image: Front square vertices TL=A', TR=B', BR=C, BL=B */}
+    {/* Hidden Edges Connecting Back to Front/Bottom */}
+    <path d="M80 100 L40 140" fill="none" stroke="#4f46e5" strokeWidth="1.5" strokeDasharray="3" />
+    <path d="M80 100 L160 100" fill="none" stroke="#4f46e5" strokeWidth="1.5" strokeDasharray="3" />
+    <path d="M80 100 L80 20" fill="none" stroke="#4f46e5" strokeWidth="1.5" strokeDasharray="3" />
+
+    {/* Visible Back Edges */}
+    <path d="M160 100 L160 20 L80 20" fill="none" stroke="#4f46e5" strokeWidth="2" />
+
+    {/* Visible sides */}
     <path d="M40 60 L120 60 L120 140 L40 140 Z" fill="url(#cubeGrad)" stroke="#4f46e5" strokeWidth="2" />
-    
-    {/* Top face visible edges */}
-    <path d="M40 60 L80 20 L160 20 L120 60" fill="url(#cubeGrad)" stroke="#4f46e5" strokeWidth="2" strokeLinejoin="round" />
-    
-    {/* Right side visible edges */}
-    <path d="M120 140 L160 100 L160 20" fill="none" stroke="#4f46e5" strokeWidth="2" strokeLinejoin="round" />
+    <path d="M40 60 L80 20" stroke="#4f46e5" strokeWidth="2" />
+    <path d="M120 60 L160 20" stroke="#4f46e5" strokeWidth="2" />
+    <path d="M120 140 L160 100" stroke="#4f46e5" strokeWidth="2" />
 
-    {/* Labels to match image EXACTLY */}
-    {/* Front Face: Top-Left=A', Top-Right=B', Bottom-Right=C, Bottom-Left=B */}
+    {/* Labels (Front) */}
     <text x="30" y="55" className="text-[12px] font-bold fill-indigo-800">A'</text>
     <text x="125" y="55" className="text-[12px] font-bold fill-indigo-800">B'</text>
     <text x="125" y="155" className="text-[12px] font-bold fill-indigo-800">C</text>
     <text x="30" y="155" className="text-[12px] font-bold fill-indigo-800">B</text>
     
-    {/* Back Face (offset): Top-Left=D', Top-Right=C', Bottom-Right=D, Bottom-Left=A */}
-    <text x="75" y="15" className="text-[12px] font-bold fill-indigo-800">D'</text>
+    {/* Labels (Back) */}
+    <text x="70" y="15" className="text-[12px] font-bold fill-indigo-800">D'</text>
     <text x="165" y="15" className="text-[12px] font-bold fill-indigo-800">C'</text>
     <text x="165" y="115" className="text-[12px] font-bold fill-indigo-800">D</text>
-    <text x="70" y="115" className="text-[12px] font-bold opacity-40 fill-indigo-800 italic">A</text>
+    <text x="65" y="105" className="text-[12px] font-bold opacity-50 fill-indigo-800 italic">A</text>
   </svg>
 );
 
@@ -342,21 +407,22 @@ const PyramidSABC = () => (
         <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.1" />
       </linearGradient>
     </defs>
-    {/* Points: A(100,130) back, B(40,170) front-left, C(160,170) front-right, S(100,30) */}
+    {/* S directly above A (SA perp to base) */}
+    {/* A(100,100) back, B(40,160) front-left, C(160,160) front-right, S(100,20) */}
     
-    {/* Hidden edges */}
-    <path d="M100 130 L40 170" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4" />
-    <path d="M100 130 L160 170" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4" />
-    <path d="M100 30 L100 130" fill="none" stroke="#6366f1" strokeWidth="1.5" strokeDasharray="4" />
+    {/* Hidden Edges */}
+    <path d="M100 100 L40 160" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4" />
+    <path d="M100 100 L160 160" fill="none" stroke="#6366f1" strokeWidth="1" strokeDasharray="4" />
+    <path d="M100 20 L100 100" fill="none" stroke="#6366f1" strokeWidth="2" strokeDasharray="4" />
     
     {/* Base/Sides */}
-    <path d="M40 170 L160 170 L100 30 Z" fill="url(#pyrSABC)" stroke="#4f46e5" strokeWidth="2" strokeLinejoin="round" />
-    <path d="M100 30 L40 170" stroke="#4f46e5" strokeWidth="2" />
+    <path d="M40 160 L160 160 L100 20 Z" fill="url(#pyrSABC)" stroke="#4f46e5" strokeWidth="2" strokeLinejoin="round" />
+    <path d="M100 20 L40 160" stroke="#4f46e5" strokeWidth="2" />
     
-    <text x="95" y="25" className="text-[14px] font-bold fill-indigo-900">S</text>
-    <text x="95" y="125" className="text-[12px] font-bold fill-indigo-800">A</text>
-    <text x="30" y="185" className="text-[12px] font-bold fill-indigo-800">B</text>
-    <text x="165" y="185" className="text-[12px] font-bold fill-indigo-800">C</text>
+    <text x="95" y="15" className="text-[14px] font-bold fill-indigo-900">S</text>
+    <text x="105" y="105" className="text-[12px] font-bold fill-indigo-800 opacity-60 italic">A</text>
+    <text x="30" y="175" className="text-[12px] font-bold fill-indigo-800">B</text>
+    <text x="165" y="175" className="text-[12px] font-bold fill-indigo-800">C</text>
   </svg>
 );
 
@@ -630,6 +696,7 @@ const ResultScreen = ({ result, onRestart, onShowLeaderboard }: { result: QuizRe
 };
 
 export default function App() {
+  const [isLocked, setIsLocked] = useState(true);
   const [gameState, setGameState] = useState<'intro' | 'register' | 'gate' | 'playing' | 'result'>('intro');
   const [userName, setUserName] = useState('');
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
@@ -691,70 +758,84 @@ export default function App() {
     <div className="min-h-screen bg-[#F8FAFC] text-gray-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       <main className="container mx-auto px-4 min-h-screen flex items-center justify-center">
         <AnimatePresence mode="wait">
-          {gameState === 'intro' && (
+          {isLocked ? (
             <motion.div 
-              key="intro"
+              key="lock"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="w-full"
             >
-              <IntroScreen onStart={startQuiz} onShowLeaderboard={() => setShowLeaderboard(true)} />
+              <PasscodeScreen onUnlock={() => setIsLocked(false)} />
             </motion.div>
-          )}
-          {gameState === 'register' && (
-            <motion.div 
-              key="register"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="w-full"
-            >
-              <RegistrationScreen onComplete={handleRegistration} />
-            </motion.div>
-          )}
-          {gameState === 'gate' && (
-            <motion.div 
-              key="gate"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="w-full"
-            >
-              <MathVsCrushGate onChoice={handleGateChoice} />
-            </motion.div>
-          )}
-          {gameState === 'playing' && (
-            <motion.div 
-              key="playing"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="w-full"
-            >
-              <QuizGame questions={shuffledQuestions} onFinish={finishQuiz} />
-            </motion.div>
-          )}
-          {gameState === 'result' && quizResult && (
-            <motion.div 
-              key="result"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="w-full relative"
-            >
-              {isSaving && (
-                <div className="absolute top-4 right-4 flex items-center gap-2 text-xs font-bold text-indigo-500 bg-white px-3 py-1 rounded-full shadow-sm border border-indigo-100">
-                  <div className="w-2 h-2 bg-indigo-500 rounded-full animate-ping" />
-                  Đang sao lưu dữ liệu...
-                </div>
+          ) : (
+            <>
+              {gameState === 'intro' && (
+                <motion.div 
+                  key="intro"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="w-full"
+                >
+                  <IntroScreen onStart={startQuiz} onShowLeaderboard={() => setShowLeaderboard(true)} />
+                </motion.div>
               )}
-              <ResultScreen 
-                result={quizResult} 
-                onRestart={() => setGameState('intro')} 
-                onShowLeaderboard={() => setShowLeaderboard(true)}
-              />
-            </motion.div>
+              {gameState === 'register' && (
+                <motion.div 
+                  key="register"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="w-full"
+                >
+                  <RegistrationScreen onComplete={handleRegistration} />
+                </motion.div>
+              )}
+              {gameState === 'gate' && (
+                <motion.div 
+                  key="gate"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="w-full"
+                >
+                  <MathVsCrushGate onChoice={handleGateChoice} />
+                </motion.div>
+              )}
+              {gameState === 'playing' && (
+                <motion.div 
+                  key="playing"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="w-full"
+                >
+                  <QuizGame questions={shuffledQuestions} onFinish={finishQuiz} />
+                </motion.div>
+              )}
+              {gameState === 'result' && quizResult && (
+                <motion.div 
+                  key="result"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="w-full relative"
+                >
+                  {isSaving && (
+                    <div className="absolute top-4 right-4 flex items-center gap-2 text-xs font-bold text-indigo-500 bg-white px-3 py-1 rounded-full shadow-sm border border-indigo-100">
+                      <div className="w-2 h-2 bg-indigo-500 rounded-full animate-ping" />
+                      Đang sao lưu dữ liệu...
+                    </div>
+                  )}
+                  <ResultScreen 
+                    result={quizResult} 
+                    onRestart={() => setGameState('intro')} 
+                    onShowLeaderboard={() => setShowLeaderboard(true)}
+                  />
+                </motion.div>
+              )}
+            </>
           )}
         </AnimatePresence>
         
